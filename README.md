@@ -112,28 +112,6 @@ Beginner-friendly and open to improvements!
 
 This project is licensed under the **Creative Commons CC0 1.0 Universal License**.
 
-```
-CREATIVE COMMONS CORPORATION IS NOT A LAW FIRM AND DOES NOT PROVIDE
-LEGAL SERVICES. DISTRIBUTION OF THIS DOCUMENT DOES NOT CREATE AN
-ATTORNEY-CLIENT RELATIONSHIP. CREATIVE COMMONS PROVIDES THIS
-INFORMATION ON AN "AS-IS" BASIS. CREATIVE COMMONS MAKES NO WARRANTIES
-REGARDING THE USE OF THIS DOCUMENT OR THE INFORMATION OR WORKS
-PROVIDED HEREUNDER, AND DISCLAIMS LIABILITY FOR DAMAGES RESULTING FROM
-THE USE OF THIS DOCUMENT OR THE INFORMATION OR WORKS PROVIDED
-HEREUNDER.
-
-The person applying CC0 to a work waives all rights to the work worldwide
-under copyright law, including all related and neighboring rights, to the
-extent allowed by law.
-
-You can copy, modify, distribute and perform the work, even for commercial purposes,
-all without asking permission.
-```
-
-For full legal terms, see: [https://creativecommons.org/publicdomain/zero/1.0/legalcode](https://creativecommons.org/publicdomain/zero/1.0/legalcode)
-
----
-
 ## 🙋‍♂️ Author
 
 **Anis Vasanth**  
