@@ -25,3 +25,22 @@ This is a simple, interactive AI chatbot built with **HTML**, **CSS**, and **Jav
 
 ## 📂 Project Structure
 
+## 📡 API Setup (OpenRouter)
+
+To make the chatbot functional, you'll need to connect it to the OpenRouter AI API:
+
+### 🔐 Steps to Get Your API Key:
+
+1. Go to [https://openrouter.ai](https://openrouter.ai)
+2. Sign in or create a free account
+3. Navigate to the **Keys** tab from your dashboard
+4. Click **Create Key** and copy the generated key (starts with `sk-or-...`)
+
+### 🔧 Configure Your API Key:
+
+Open `script.js` and find this line:
+
+```javascript
+const API_KEY = "sk-or-your-api-key-here"; // Replace with your key
+
+
