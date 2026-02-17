@@ -55,9 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            const reply = data.reply;
-            addMessage(reply || "No response from AI");
-
+            addMessage(data.reply || "No response from AI");
         })
         .catch(err => {
             console.error(err);
