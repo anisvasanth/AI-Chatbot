@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            const reply = data.choices?.[0]?.message?.content;
+            const reply = data.reply;
             addMessage(reply || "No response from AI");
 
         })
