@@ -1,54 +1,40 @@
-export async function handler(event) {
+exports.handler = async function (event) {
   try {
-
-    // check request body
-    if (!event.body) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: "No message provided" })
-      };
-    }
-
-    const { message } = JSON.parse(event.body);
+    const body = JSON.parse(event.body);
+    const message = body.message;
 
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
+        "Authorization": `Bearer ${process.env.OPENROUTER_KEY}`,
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENROUTER_KEY}`
+        "HTTP-Referer": "https://ai-chatbot-anis.netlify.app",
+        "X-Title": "AI Chatbot"
       },
       body: JSON.stringify({
-        model: "openai/gpt-3.5-turbo",
+        model: "meta-llama/llama-3-8b-instruct",
         messages: [
-          { role: "system", content: "You are a helpful assistant. Respond clearly using headings and bullet points." },
           { role: "user", content: message }
         ]
       })
     });
 
-    // if API failed
-    if (!response.ok) {
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ error: "AI API request failed" })
-      };
-    }
-
     const data = await response.json();
 
     return {
       statusCode: 200,
-      body: JSON.stringify(data)
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        reply: data.choices?.[0]?.message?.content || "No AI reply"
+      })
     };
 
-  } catch (error) {
-  console.log("FULL ERROR:", error);
-  console.log("ERROR MESSAGE:", error.message);
+  } catch (err) {
+    console.error(err);
 
-  return {
-    statusCode: 500,
-    body: JSON.stringify({
-      reply: "ERROR: " + error.message
-    })
-  };
-}
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: err.message })
+    };
+  }
+};
