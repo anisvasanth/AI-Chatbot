@@ -42,9 +42,13 @@ export async function handler(event) {
     };
 
   } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: "Function crashed", details: error.message })
-    };
-  }
+  console.log("FULL ERROR:", error);
+  console.log("ERROR MESSAGE:", error.message);
+
+  return {
+    statusCode: 500,
+    body: JSON.stringify({
+      reply: "ERROR: " + error.message
+    })
+  };
 }
