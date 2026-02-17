@@ -1,77 +1,74 @@
 document.addEventListener("DOMContentLoaded", () => {
-    console.log("✅ Script loaded");
 
     const chatMessages = document.getElementById("chat-messages");
     const userInput = document.getElementById("user-input");
     const sendButton = document.getElementById("send-button");
 
+    // FORMAT AI RESPONSE
+    function formatMessage(message) {
+        return message
+            .replace(/^### (.*$)/gim, "<h3>$1</h3>")
+            .replace(/^## (.*$)/gim, "<h2>$1</h2>")
+            .replace(/^# (.*$)/gim, "<h1>$1</h1>")
+            .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")
+            .replace(/\*(.*?)\*/g, "<i>$1</i>")
+            .replace(/^- (.*)$/gim, "• $1")
+            .replace(/\n/g, "<br>");
+    }
+
     function addMessage(message, isUser = false) {
+
         const messageDiv = document.createElement("div");
-        messageDiv.classList.add("message");
-        messageDiv.classList.add(isUser ? "user-message" : "bot-message");
-        const messageText = document.createElement("p");
-        messageText.textContent = message;
+        messageDiv.classList.add("message", isUser ? "user-message" : "bot-message");
+
+        const messageText = document.createElement("div");
+        messageText.classList.add("message-text");
+
+        messageText.innerHTML = isUser ? message : formatMessage(message);
+
         messageDiv.appendChild(messageText);
         chatMessages.appendChild(messageDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
+    // SEND MESSAGE TO NETLIFY FUNCTION
     function sendMessage() {
+
         const message = userInput.value.trim();
         if (!message) return;
 
-        console.log("📨 User sent:", message);
         addMessage(message, true);
         userInput.value = "";
 
-        const API_KEY = "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"; // ← Replace with your actual key
-        const API_URL = "https://openrouter.ai/api/v1/chat/completions";
-
-        fetch(API_URL, {
+        fetch("/.netlify/functions/chat", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${API_KEY}`
+                "Content-Type": "application/json"
             },
-            body: JSON.stringify({
-                model: "openai/gpt-3.5-turbo", // Can change to mistral/mistral-7b-instruct or others
-                messages: [
-                    { role: "system", content: "You are a helpful assistant." },
-                    { role: "user", content: message }
-                ]
-            })
+            body: JSON.stringify({ message })
         })
-        .then(response => response.json())
+        .then(res => res.json())
         .then(data => {
-            console.log("🌐 API response:", data);
 
-            if (data.error) {
-                addMessage("❌ API Error: " + data.error.message);
+            if (!data || data.error) {
+                addMessage("Server error. Check backend.");
                 return;
             }
 
-            const botReply = data.choices?.[0]?.message?.content;
-            if (botReply) {
-                addMessage(botReply);
-            } else {
-                addMessage("❌ Bot didn't reply properly.");
-            }
+            const reply = data.choices?.[0]?.message?.content;
+            addMessage(reply || "No response from AI");
+
         })
-        .catch(error => {
-            console.error("🌐 Fetch error:", error);
-            addMessage("❌ Failed to connect to OpenRouter.");
+        .catch(err => {
+            console.error(err);
+            addMessage("Connection failed.");
         });
     }
 
-    sendButton.addEventListener("click", () => {
-        console.log("🖱️ Send button clicked");
-        sendMessage();
+    sendButton.addEventListener("click", sendMessage);
+
+    userInput.addEventListener("keydown", e => {
+        if (e.key === "Enter") sendMessage();
     });
 
-    userInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") {
-            console.log("⏎ Enter key pressed");
-            sendMessage();
-        }
-    });
 });
