@@ -1,35 +1,29 @@
-// netlify/functions/chat.js
-
-exports.handler = async (event) => {
+export async function handler(event) {
   try {
-    // Allow only POST
-    if (event.httpMethod !== "POST") {
-      return {
-        statusCode: 405,
-        body: "Method Not Allowed"
-      };
-    }
 
-    // Get message from frontend
-    const { message } = JSON.parse(event.body || "{}");
-
-    if (!message) {
+    // check body
+    if (!event.body) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ reply: "No message received" })
+        body: JSON.stringify({ error: "No message provided" })
       };
     }
 
-    // Call OpenRouter AI
+    const { message } = JSON.parse(event.body);
+
+    // call OpenRouter
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
+        "Content-Type": "application/json",
         "Authorization": `Bearer ${process.env.OPENROUTER_KEY}`,
-        "Content-Type": "application/json"
+        "HTTP-Referer": "https://ai-chatbot-anis.netlify.app",
+        "X-Title": "AI Chatbot"
       },
       body: JSON.stringify({
         model: "openai/gpt-3.5-turbo",
         messages: [
+          { role: "system", content: "You are a helpful assistant. Respond clearly using headings and bullet points." },
           { role: "user", content: message }
         ]
       })
@@ -37,37 +31,18 @@ exports.handler = async (event) => {
 
     const data = await response.json();
 
-    // Extract AI reply safely
-    let aiResponse = "AI not responding";
+    // important: send only TEXT not full JSON
+    const reply = data?.choices?.[0]?.message?.content || "AI returned empty response";
 
-    if (data && data.choices && data.choices.length > 0) {
-      aiResponse = data.choices[0].message.content;
-    }
-
-    // Return to frontend
     return {
       statusCode: 200,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*"
-      },
-      body: JSON.stringify({
-        reply: aiResponse
-      })
+      body: JSON.stringify({ reply })   // <-- FIX
     };
 
   } catch (error) {
-    console.log("FUNCTION ERROR:", error);
-
     return {
       statusCode: 500,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*"
-      },
-      body: JSON.stringify({
-        reply: "Server error: " + error.message
-      })
+      body: JSON.stringify({ error: error.message })
     };
   }
-};
+}
