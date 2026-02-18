@@ -19,11 +19,7 @@ export async function handler(event) {
         body: JSON.stringify({
           contents: [
             {
-              parts: [
-                {
-                  text: `You are a helpful assistant. Reply clearly using headings and bullet points.\nUser: ${message}`
-                }
-              ]
+              parts: [{ text: message }]
             }
           ]
         })
@@ -37,27 +33,25 @@ export async function handler(event) {
       return {
         statusCode: 500,
         body: JSON.stringify({
-          error: data?.error?.message || "Gemini request failed"
+          error: data.error?.message || "Gemini API failed"
         })
       };
     }
 
     const reply =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "AI returned empty response";
+      data.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "No response from AI";
 
     return {
       statusCode: 200,
-      body: JSON.stringify({
-        choices: [{ message: { content: reply } }]
-      })
+      body: JSON.stringify({ reply })
     };
 
-  } catch (error) {
-    console.error("FUNCTION CRASH:", error);
+  } catch (err) {
+    console.error("FUNCTION CRASH:", err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message })
+      body: JSON.stringify({ error: err.message })
     };
   }
 }
