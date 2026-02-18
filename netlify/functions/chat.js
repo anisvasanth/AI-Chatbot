@@ -10,7 +10,7 @@ export async function handler(event) {
     const { message } = JSON.parse(event.body);
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: {
@@ -28,7 +28,6 @@ export async function handler(event) {
     );
 
     const data = await response.json();
-    console.log("GEMINI RESPONSE:", JSON.stringify(data));
 
     if (!response.ok) {
       return {
@@ -41,7 +40,7 @@ export async function handler(event) {
 
     const reply =
       data.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "AI returned empty response";
+      "No response from AI";
 
     return {
       statusCode: 200,
@@ -49,7 +48,6 @@ export async function handler(event) {
     };
 
   } catch (err) {
-    console.error("FUNCTION CRASH:", err);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: err.message })
