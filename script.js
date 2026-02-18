@@ -1,72 +1,47 @@
-document.addEventListener("DOMContentLoaded", () => {
+const chatBox = document.getElementById("chat-box");
+const input = document.getElementById("user-input");
+const sendBtn = document.getElementById("send-btn");
 
-    const chatMessages = document.getElementById("chat-messages");
-    const userInput = document.getElementById("user-input");
-    const sendButton = document.getElementById("send-button");
+function addMessage(text, sender) {
+  const msg = document.createElement("div");
+  msg.className = sender === "user" ? "user-message" : "bot-message";
+  msg.innerText = text;
+  chatBox.appendChild(msg);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
 
-    // FORMAT AI RESPONSE
-    function formatMessage(message) {
-        return message
-            .replace(/^### (.*$)/gim, "<h3>$1</h3>")
-            .replace(/^## (.*$)/gim, "<h2>$1</h2>")
-            .replace(/^# (.*$)/gim, "<h1>$1</h1>")
-            .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")
-            .replace(/\*(.*?)\*/g, "<i>$1</i>")
-            .replace(/^- (.*)$/gim, "• $1")
-            .replace(/\n/g, "<br>");
-    }
+async function sendMessage() {
+  const message = input.value.trim();
+  if (!message) return;
 
-    function addMessage(message, isUser = false) {
+  addMessage(message, "user");
+  input.value = "";
 
-        const messageDiv = document.createElement("div");
-        messageDiv.classList.add("message", isUser ? "user-message" : "bot-message");
-
-        const messageText = document.createElement("div");
-        messageText.classList.add("message-text");
-
-        messageText.innerHTML = isUser ? message : formatMessage(message);
-
-        messageDiv.appendChild(messageText);
-        chatMessages.appendChild(messageDiv);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    // SEND MESSAGE TO NETLIFY FUNCTION
-    function sendMessage() {
-
-        const message = userInput.value.trim();
-        if (!message) return;
-
-        addMessage(message, true);
-        userInput.value = "";
-
-        fetch("/.netlify/functions/chat", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ message })
-        })
-        .then(res => res.json())
-        .then(data => {
-
-            if (!data || data.error) {
-                addMessage("Server error. Check backend.");
-                return;
-            }
-
-            addMessage(data.reply || "No response from AI");
-        })
-        .catch(err => {
-            console.error(err);
-            addMessage("Connection failed.");
-        });
-    }
-
-    sendButton.addEventListener("click", sendMessage);
-
-    userInput.addEventListener("keydown", e => {
-        if (e.key === "Enter") sendMessage();
+  try {
+    const res = await fetch("/.netlify/functions/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ message })
     });
 
+    const data = await res.json();
+
+    if (!res.ok) {
+      addMessage("Server error: " + (data.error || "Unknown error"), "bot");
+      return;
+    }
+
+    addMessage(data.reply, "bot");
+
+  } catch (err) {
+    addMessage("Cannot connect to AI server.", "bot");
+  }
+}
+
+sendBtn.addEventListener("click", sendMessage);
+
+input.addEventListener("keypress", function (e) {
+  if (e.key === "Enter") sendMessage();
 });
