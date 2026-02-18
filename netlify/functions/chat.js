@@ -21,20 +21,24 @@ export async function handler(event) {
     );
 
     const data = await response.json();
-    console.log("Gemini:", data);
+    console.log("FULL RESPONSE:", JSON.stringify(data));
 
     if (!response.ok) {
       return {
-        statusCode: 500,
-        body: JSON.stringify({ error: data.error?.message || "API Error" })
+        statusCode: response.status,
+        body: JSON.stringify({
+          error: data.error?.message || "Google API error"
+        })
       };
     }
 
+    const reply =
+      data.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "No response";
+
     return {
       statusCode: 200,
-      body: JSON.stringify({
-        reply: data.candidates?.[0]?.content?.parts?.[0]?.text || "No reply"
-      })
+      body: JSON.stringify({ reply })
     };
 
   } catch (err) {
