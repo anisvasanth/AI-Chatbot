@@ -1,16 +1,9 @@
 export async function handler(event) {
   try {
-    if (!event.body) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: "No message provided" })
-      };
-    }
-
     const { message } = JSON.parse(event.body);
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: {
@@ -28,24 +21,20 @@ export async function handler(event) {
     );
 
     const data = await response.json();
-    console.log("FULL RESPONSE:", data);
+    console.log("Gemini:", data);
 
     if (!response.ok) {
       return {
         statusCode: 500,
-        body: JSON.stringify({
-          error: data.error?.message || "Gemini API failed"
-        })
+        body: JSON.stringify({ error: data.error?.message || "API Error" })
       };
     }
 
-    const reply =
-      data.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "AI returned empty response";
-
     return {
       statusCode: 200,
-      body: JSON.stringify({ reply })
+      body: JSON.stringify({
+        reply: data.candidates?.[0]?.content?.parts?.[0]?.text || "No reply"
+      })
     };
 
   } catch (err) {
