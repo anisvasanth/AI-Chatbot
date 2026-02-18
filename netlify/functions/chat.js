@@ -1,6 +1,5 @@
 export async function handler(event) {
   try {
-
     if (!event.body) {
       return {
         statusCode: 400,
@@ -10,41 +9,52 @@ export async function handler(event) {
 
     const { message } = JSON.parse(event.body);
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${process.env.OPENROUTER_KEY}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://ai-chatbot-anis.netlify.app",
-        "X-Title": "AI Chatbot"
-      },
-      body: JSON.stringify({
-        model: "openai/gpt-3.5-turbo",
-        messages: [
-          { role: "system", content: "You are a helpful assistant. Respond clearly using headings and bullet points." },
-          { role: "user", content: message }
-        ]
-      })
-    });
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: `You are a helpful assistant. Reply clearly using headings and bullet points.\nUser: ${message}`
+                }
+              ]
+            }
+          ]
+        })
+      }
+    );
 
     const data = await response.json();
-
-    console.log("OPENROUTER RESPONSE:", data);
+    console.log("GEMINI RESPONSE:", JSON.stringify(data));
 
     if (!response.ok) {
       return {
         statusCode: 500,
-        body: JSON.stringify({ error: data })
+        body: JSON.stringify({
+          error: data?.error?.message || "Gemini request failed"
+        })
       };
     }
 
+    const reply =
+      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "AI returned empty response";
+
     return {
       statusCode: 200,
-      body: JSON.stringify(data)
+      body: JSON.stringify({
+        choices: [{ message: { content: reply } }]
+      })
     };
 
   } catch (error) {
-    console.error("FUNCTION ERROR:", error);
+    console.error("FUNCTION CRASH:", error);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: error.message })
