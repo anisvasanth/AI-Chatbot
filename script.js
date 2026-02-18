@@ -1,12 +1,6 @@
-// Correct element selection
 const input = document.getElementById("user-input");
 const sendBtn = document.getElementById("send-button");
 const chatBox = document.getElementById("chat-messages");
-
-// Safety check
-if (!input || !sendBtn || !chatBox) {
-  console.error("HTML elements not found. Check IDs!");
-}
 
 // Add message to UI
 function addMessage(text, isUser) {
@@ -15,8 +9,8 @@ function addMessage(text, isUser) {
 
   const p = document.createElement("p");
   p.textContent = text;
-  msg.appendChild(p);
 
+  msg.appendChild(p);
   chatBox.appendChild(msg);
   chatBox.scrollTop = chatBox.scrollHeight;
 }
@@ -29,7 +23,12 @@ async function sendMessage() {
   addMessage(message, true);
   input.value = "";
 
-  const thinkingMsg = addMessage("Thinking...", false);
+  // thinking message
+  const thinking = document.createElement("div");
+  thinking.className = "message bot-message";
+  thinking.innerHTML = "<p>Thinking...</p>";
+  chatBox.appendChild(thinking);
+  chatBox.scrollTop = chatBox.scrollHeight;
 
   try {
     const res = await fetch("/.netlify/functions/chat", {
@@ -42,33 +41,25 @@ async function sendMessage() {
 
     const data = await res.json();
 
-    // remove thinking
-    chatBox.lastChild.remove();
+    thinking.remove();
 
     if (!res.ok) {
       addMessage("Server error: " + (data.error || "Unknown error"), false);
       return;
     }
 
-    // Gemini response format
-    const reply =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      data?.reply ||
-      "AI returned empty response";
-
-    addMessage(reply, false);
+    addMessage(data.reply, false);
 
   } catch (err) {
-    chatBox.lastChild.remove();
+    thinking.remove();
     addMessage("Cannot connect to server", false);
-    console.error(err);
   }
 }
 
-// Button click
+// Click send
 sendBtn.addEventListener("click", sendMessage);
 
-// Enter key
-input.addEventListener("keydown", e => {
+// Press Enter
+input.addEventListener("keydown", (e) => {
   if (e.key === "Enter") sendMessage();
 });
