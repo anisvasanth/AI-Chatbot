@@ -1,11 +1,11 @@
-const chatBox = document.getElementById("chat-box");
-const input = document.getElementById("user-input");
-const sendBtn = document.getElementById("send-btn");
+const input = document.querySelector("input");
+const sendBtn = document.querySelector("button");
+const chatBox = document.querySelector(".chat-box");
 
-function addMessage(text, sender) {
+function addMessage(text, isUser) {
   const msg = document.createElement("div");
-  msg.className = sender === "user" ? "user-message" : "bot-message";
-  msg.innerText = text;
+  msg.className = isUser ? "user-msg" : "bot-msg";
+  msg.textContent = text;
   chatBox.appendChild(msg);
   chatBox.scrollTop = chatBox.scrollHeight;
 }
@@ -14,8 +14,10 @@ async function sendMessage() {
   const message = input.value.trim();
   if (!message) return;
 
-  addMessage(message, "user");
+  addMessage(message, true);
   input.value = "";
+
+  addMessage("Thinking...", false);
 
   try {
     const res = await fetch("/.netlify/functions/chat", {
@@ -28,20 +30,27 @@ async function sendMessage() {
 
     const data = await res.json();
 
+    chatBox.lastChild.remove();
+
     if (!res.ok) {
-      addMessage("Server error: " + (data.error || "Unknown error"), "bot");
+      addMessage("Backend error: " + (data.error || "Unknown"), false);
       return;
     }
 
-    addMessage(data.reply, "bot");
+    const reply =
+      data.candidates?.[0]?.content?.parts?.[0]?.text ||
+      data.reply ||
+      "Empty response";
+
+    addMessage(reply, false);
 
   } catch (err) {
-    addMessage("Cannot connect to AI server.", "bot");
+    chatBox.lastChild.remove();
+    addMessage("Cannot connect to server", false);
   }
 }
 
 sendBtn.addEventListener("click", sendMessage);
-
-input.addEventListener("keypress", function (e) {
+input.addEventListener("keypress", e => {
   if (e.key === "Enter") sendMessage();
 });
