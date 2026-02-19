@@ -1,9 +1,16 @@
 export async function handler(event) {
   try {
+    if (!event.body) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "No message provided" })
+      };
+    }
+
     const { message } = JSON.parse(event.body);
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: {
@@ -21,13 +28,13 @@ export async function handler(event) {
     );
 
     const data = await response.json();
-    console.log("FULL RESPONSE:", JSON.stringify(data));
+    console.log("GEMINI:", JSON.stringify(data));
 
     if (!response.ok) {
       return {
         statusCode: response.status,
         body: JSON.stringify({
-          error: data.error?.message || "Google API error"
+          error: data.error?.message || "Gemini failed"
         })
       };
     }
